@@ -50,23 +50,33 @@ def create_plot(member_values):
             elif b < x <= c:
                 fuzzy_membership[i][j] = (c - x) / (c - b)
 
-    print(fuzzy_membership)
+    # print(fuzzy_membership)
 
     # Plot the fuzzy membership function
     plt.figure(figsize=(10, 6))
     for i in range(len(fuzzy_membership)):
         plt.plot(x_values, fuzzy_membership[i], label=f'Set {i+1}')
-    plt.xlabel("Input value")
+    plt.xlabel("Temperature")
     plt.ylabel("Membership degree")
     plt.title("Fuzzy Membership Functions")
     plt.xlim(0, 50)
-    plt.ylim(-1, 2)
+    plt.ylim(-0.25, 1.25)
     plt.legend()
     plt.grid(True)
     plt.show()
 
-fuzzy_membership = create_membership(3, 10, 40)
-create_plot(fuzzy_membership)
+    return fuzzy_membership
+
+hot_encoding = create_membership(3, 10, 40)
+fuzzy_membership = create_plot(hot_encoding)
+
+value = 30
+
+# Check the membership degree for each set
+for i in range(len(fuzzy_membership)):
+    membership_degree = fuzzy_membership[i][value]
+    print(f"Membership degree for Set {i+1} at value {value}: {membership_degree}")
+
 
 
         
