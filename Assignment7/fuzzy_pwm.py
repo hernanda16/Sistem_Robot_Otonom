@@ -23,7 +23,7 @@ def getDistances(sim, sensorsHandle):
 def getMotorsHandle(sim):
     motorRightHandle = sim.getObject('/PioneerP3DX/rightMotor')
     motorLeftHandle = sim.getObject('/PioneerP3DX/leftMotor')
-    return motorRightHandle, motorLeftHandle
+    return motorLeftHandle, motorRightHandle
 
 def setRobotMotion(sim, motorsHandle, veloCmd):
     _ = sim.setJointTargetVelocity(motorsHandle[0], veloCmd[0])
@@ -201,13 +201,12 @@ while(True):
 
     # print(f'Weighted crisp output: {weighted_crisp:.2f}')
 
-    # normalize the velocity from -1 to 1
-    max_velocity = 2  # Assuming the maximum absolute velocity is 5
+    max_velocity = 2 
     weighted_crisp[0] = max(-1, min(1, weighted_crisp[0] / max_velocity))
     weighted_crisp[1] = max(-1, min(1, weighted_crisp[1] / max_velocity))
     
-    wheels_velo = weighted_crisp[1], weighted_crisp[0]
+    wheels_velo = weighted_crisp[0], weighted_crisp[1]
     setRobotMotion(sim, motors_handle, wheels_velo)
 
     plot_crisp_output(crisp_out=weighted_crisp)
-    # plot_distance_membership_functions()
+    plot_distance_membership_functions()
