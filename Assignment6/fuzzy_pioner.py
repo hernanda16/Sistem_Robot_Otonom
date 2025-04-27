@@ -1,8 +1,9 @@
 from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 import keyboard
 import numpy as np
+import matplotlib.pyplot as plt
 
-num_inputs = 21
+num_inputs = 11
 x_values = [i * 0.1 for i in range(num_inputs)]
 
 def create_membership(n_set, range_min, range_max, step):
@@ -59,7 +60,7 @@ def getDistances(sim, sensorsHandle):
         detectionState, _, detectedPoint, _, _ = sim.readProximitySensor(sensorsHandle[i])
         distanceValue = detectedPoint[2]
         if detectionState == False:
-            distanceValue = 2.0
+            distanceValue = 1.0
         Distances.append(distanceValue)
     return Distances
 
@@ -85,8 +86,22 @@ motors_handle = getMotorsHandle(sim)
 wheels_velo = [0.0, 0.0]
 time_start = sim.getSimulationTime()
 
-member_values = create_membership(2, 0, 2.0, 0.1)
+member_values = create_membership(2, 0, 1.0, 0.1)
 fuzzy_membership = create_fuzzy_membership(member_values, x_values)
+
+plt.ion()
+fig, ax = plt.subplots(figsize=(10, 6))
+
+line_near, = ax.plot([], [], label='Near', color='blue', alpha=0.5)
+line_far, = ax.plot([], [], label='Far', color='green', alpha=0.5)
+colors = ['red', 'orange', 'purple', 'brown']
+distance_lines = [ax.axvline(x=0, color=colors[i], linestyle='--', label=f'Sensor {i} Distance') for i in range(4)]
+
+ax.set_title('Sensor Membership Visualization')
+ax.set_xlabel('Distance')
+ax.set_ylabel('Membership Degree')
+ax.legend()
+ax.grid(True)
 
 while True:
     t_now = sim.getSimulationTime() - time_start
@@ -95,10 +110,9 @@ while True:
 
     sensor_being_checked = [0, 2, 5, 7]
 
-    for sensor_idx in range(len(sensor_being_checked)):
-        sensor = sensor_being_checked[sensor_idx]
+    for sensor_idx, sensor in enumerate(sensor_being_checked):
         distance = obj_distance[sensor]
-        distance = max(0.0, min(distance, 2.0))
+        distance = max(0.0, min(distance, 1.0))
 
         index = int(distance / 0.1)
         index = max(0, min(index, len(x_values) - 1))
@@ -108,7 +122,18 @@ while True:
             membership_degree = fuzzy_membership[set_idx][index]
             membership_degrees.append(membership_degree)
 
-        print(f"Sensor {sensor}: Distance {distance:.2f}, Near = {membership_degrees[0]:.2f}, Far = {membership_degrees[1]:.2f}")
+        decision = 'Near' if membership_degrees[0] > membership_degrees[1] else 'Far'
+
+        distance_lines[sensor_idx].set_xdata(distance)
+        distance_lines[sensor_idx].set_label(f'Sensor {sensor} ({decision})')
+
+    line_near.set_data(x_values, fuzzy_membership[0])
+    line_far.set_data(x_values, fuzzy_membership[1])
+
+    ax.relim()
+    ax.autoscale_view()
+    ax.legend()
+    plt.pause(0.01)
 
 sim.stopSimulation()
 print('\nProgram ended\n')
